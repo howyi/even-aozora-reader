@@ -1,0 +1,13 @@
+[tools]
+pnpm = '10.30.0'
+node = '24.13.1'
+"npm:@evenrealities/evenhub-simulator" = "0.3.2"
+
+[tasks.dev]
+description = "Start development server and simulator"
+run = "npx concurrently \"pnpm dev\" \"npx wait-on tcp:5173 && evenhub-simulator http://localhost:5173\""
+
+[tasks.hostdist]
+description = "Serve built dist files locally"
+dir = "dist"
+run = "npx http-server"
