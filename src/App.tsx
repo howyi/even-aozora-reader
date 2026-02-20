@@ -1,34 +1,28 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import viteLogo from "/vite.svg";
-import reactLogo from "./assets/react.svg";
+import { Text } from "./components/text";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import type { PageManager } from "./hud/page-manager";
+import { SplashText } from "./hud/pages/splash-text";
 
-function App() {
-	const [count, setCount] = useState(0);
-
+function App({ manager }: { manager?: PageManager }) {
 	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank" rel="noopener">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank" rel="noopener">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
+		<div className="flex flex-col h-dvh">
+			<div className="flex flex-col px-3 bg-third-background p-2">
+				<Input className="" placeholder="Search" />
 			</div>
-			<h1>Vite + React</h1>
-			<div className="card">
-				<Button onClick={() => setCount((count) => count + 1)}>
-					count is {count}
+			<div className="flex-1 flex flex-col px-3 space-y-1.5 bg-fourth-background">
+				<Text size="very-large-title" className="text-second-foreground">
+					Reading
+				</Text>
+				<Button
+					type="button"
+					variant={"secondary"}
+					onClick={() => manager?.load(new SplashText("push"))}
+				>
+					蟹工船3
 				</Button>
-				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
-				</p>
 			</div>
-			<p className="read-the-docs">
-				Click on the Vite and React logos to learn more
-			</p>
-		</>
+		</div>
 	);
 }
 
