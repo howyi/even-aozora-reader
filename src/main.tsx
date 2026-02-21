@@ -20,12 +20,18 @@ async function main() {
 	if (bridge) {
 		try {
 			pageManager = new PageManager(bridge);
-			await pageManager.init(new SplashText("アプリで作品を選択"));
+			const result = await pageManager.init(
+				new SplashText("アプリで作品を選択"),
+			);
+			if (!result && !import.meta.env.DEV) {
+				pageManager = undefined;
+			}
 		} catch (e) {
 			console.warn("Glasses UI init failed", e);
 		}
 	}
 
+	console.log(pageManager);
 	// biome-ignore lint/style/noNonNullAssertion: The root element is guaranteed to exist
 	createRoot(document.getElementById("root")!).render(
 		<StrictMode>

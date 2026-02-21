@@ -3,6 +3,7 @@ import {
 	DeviceConnectType,
 	type EvenAppBridge,
 	OsEventTypeList,
+	StartUpPageCreateResult,
 } from "@evenrealities/even_hub_sdk";
 import type { BasePage } from "./pages/base.ts";
 
@@ -14,7 +15,7 @@ export class PageManager {
 		this.bridge = bridge;
 	}
 
-	async init(initialPage: BasePage) {
+	async init(initialPage: BasePage): Promise<boolean> {
 		this.bridge.onDeviceStatusChanged((status) => {
 			console.log("📱 Device status changed:", status);
 			if (status.connectType === DeviceConnectType.Connected) {
@@ -49,12 +50,16 @@ export class PageManager {
 		this.currentPage = initialPage;
 		initialPage.init(this.load.bind(this), this.bridge);
 		const rendered = initialPage.render();
-		await this.bridge.createStartUpPageContainer(
+		const result = await this.bridge.createStartUpPageContainer(
 			new CreateStartUpPageContainer({
 				...rendered,
 			}),
 		);
-		await initialPage?.afterRender();
+		if (result === StartUpPageCreateResult.success) {
+			await initialPage?.afterRender();
+		}
+		console.warn(result);
+		return result === StartUpPageCreateResult.success;
 	}
 
 	async load(page: BasePage) {

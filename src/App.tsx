@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import backIcon from "./components/icons/back.svg";
 import crossIcon from "./components/icons/cross.svg";
+import disconnectedIcon from "./components/icons/disconnected.svg";
 import goIcon from "./components/icons/go.svg";
 import searchIcon from "./components/icons/search.svg";
 import { Text } from "./components/text";
@@ -308,6 +309,28 @@ function App({ manager }: { manager?: PageManager }) {
 		window.location.reload();
 	};
 
+	if (!manager) {
+		return (
+			<div className="flex h-dvh items-center justify-center px-6">
+				<div className="flex w-full max-w-120 flex-col items-center gap-3 text-center">
+					<img
+						src={disconnectedIcon}
+						alt=""
+						aria-hidden="true"
+						className="size-10 opacity-80"
+					/>
+					<Text size="normal-title">Even G2が接続されていません</Text>
+					<Text size="normal-body" className="text-muted-foreground">
+						接続状態を確認してから再試行してください
+					</Text>
+					<Button type="button" className="mt-1" onClick={stopReading}>
+						Retry
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex h-dvh flex-col">
 			<div className="">
@@ -370,14 +393,6 @@ function App({ manager }: { manager?: PageManager }) {
 								</div>
 							) : null}
 						</>
-					) : null}
-					{!manager ? (
-						<Text
-							size="normal-subtitle"
-							className="mt-2 block text-muted-foreground"
-						>
-							ブラウザモード: 作品選択UIのみ表示中
-						</Text>
 					) : null}
 				</div>
 			</div>
