@@ -1,0 +1,14 @@
+{
+	"package_id": "io.github.howyi.aozorareader",
+	"edition": "202602",
+	"name": "even-aozora-reader",
+	"version": "0.1.0",
+	"min_app_version": "0.1.0",
+	"tagline": "Read Aozora Bunko books on your Even G2 glasses",
+	"description": "An Aozora Bunko reader for Even G2. Search works in the WebView, open them on the glasses, and continue from saved reading progress.",
+	"author": "howyi",
+	"entrypoint": "index.html",
+	"permissions": {
+		"network": ["evenhub.evenrealities.com", "api.sbox.studio"]
+	}
+}

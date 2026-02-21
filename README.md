@@ -15,6 +15,8 @@ This app lets users search works in a WebView UI, open them on Even G2 glasses, 
 **Aozora Bunko** is a well-known Japanese digital library of public-domain and rights-cleared literary works.
 For English-speaking readers and developers, it can be seen as a Japanese counterpart to Project Gutenberg, with many classic authors and texts available in a structured, reusable format.
 
+Official site: [Aozora Bunko](https://www.aozora.gr.jp/)
+
 ## Tech Stack
 
 - **Vite + React + TypeScript**
