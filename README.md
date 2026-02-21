@@ -106,6 +106,7 @@ In the reader page:
 ## References
 - https://github.com/nickustinov/even-g2-notes/blob/main/G2.md
 - https://github.com/BxNxM/even-dev
+- https://github.com/nickustinov/weather-even-g2
 - https://github.com/fuutott/rdt-even-g2-rddit-client
 - [Even Hub App Guideline (Figma)](https://www.figma.com/design/X82y5uJvqMH95jgOfmV34j/Even-Realities---Software-Design-Guidelines--Public-?node-id=10001-74320&t=3TVk6VSECbCRvj0L-0)
 - Even Realities official Discord

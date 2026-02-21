@@ -43,3 +43,13 @@ export function saveReadingProgress(
 		JSON.stringify(progressMap),
 	);
 }
+
+export function removeReadingProgress(bookId: string): void {
+	const progressMap = getReadingProgressMap();
+	if (!(bookId in progressMap)) return;
+	delete progressMap[bookId];
+	window.localStorage.setItem(
+		PROGRESS_STORAGE_KEY,
+		JSON.stringify(progressMap),
+	);
+}

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-95 -110 190 220"
+     width="128" height="128">
+
+  <polygon
+    points="0,-80 70,-40 70,40 0,80 -70,40 -70,-40"
+    fill="#ececec"
+    stroke="#ececec"
+    stroke-width="40"
+    stroke-linejoin="round"
+  />
+  
+  <polygon
+    points="0,-80 70,-40 0,0 -70,-40"
+    fill="#039040"
+    stroke="#039040"
+    stroke-width="15"
+    stroke-linejoin="round"
+  />
+
+  <polygon
+    points="70,-40 70,40 0,80 0,0"
+    fill="#ececec"
+    stroke="#039040"
+    stroke-width="15"
+    stroke-linejoin="round"
+  />
+
+  <polygon
+    points="-70,-40 0,0 0,80 -70,40"
+    fill="#039040"
+    stroke="#039040"
+    stroke-width="15"
+    stroke-linejoin="round"
+  />
+
+</svg>
