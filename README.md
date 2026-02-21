@@ -1,73 +1,90 @@
-# React + TypeScript + Vite
+# even-aozora-reader
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<p align="center">
+  <img src="./docs/glasses.png" alt="Even G2 HUD screenshot" width="420" />
+</p>
 
-Currently, two official plugins are available:
+>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+An Aozora Bunko reader for **Even G2**.
 
-## React Compiler
+This app lets users search works in a WebView UI, open them on Even G2 glasses, navigate pages with ring gestures, and resume from saved reading progress.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## What is Aozora Bunko?
 
-## Expanding the ESLint configuration
+**Aozora Bunko** is a well-known Japanese digital library of public-domain and rights-cleared literary works.
+For English-speaking readers and developers, it can be seen as a Japanese counterpart to Project Gutenberg, with many classic authors and texts available in a structured, reusable format.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Vite + React + TypeScript**
+- **shadcn/ui** for the WebView UI components
+- **@evenrealities/even_hub_sdk** for Even device/HUD integration
+- **evenhub-cli** for local emulator/dev workflow
+- **mise** for tool version management consistency
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Screenshots
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Even 
+
+![Glasses screenshot](./docs/glasses.png)
+
+### WebView
+
+![WebView screenshot](./docs/webview.png)
+
+## Requirements
+
+- `mise`
+
+## Getting Started
+
+### 1) Trust project configuration
+
+```bash
+mise trust
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2) Install toolchain versions managed by mise
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+From the project root:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+mise install
 ```
+
+### 3) Install dependencies
+
+```bash
+pnpm install
+```
+
+### 4) Run development environment
+
+```bash
+mise run dev
+```
+
+This starts the **Even emulator** and **WebView** together.
+
+## Controls (Ring)
+
+In the reader page:
+
+| Ring action | Behavior |
+| --- | --- |
+| Scroll up/down | Move within the current page content |
+| Click | Move to the next page |
+| Double click | Move to the previous page |
+
+## Scripts
+
+- `mise run dev`
+  - Starts both the Even emulator and the WebView in one command.
+
+## References
+
+- https://github.com/BxNxM/even-dev
+- https://github.com/fuutott/rdt-even-g2-rddit-client
+- [Even Hub App Guideline (Figma)](https://www.figma.com/design/X82y5uJvqMH95jgOfmV34j/Even-Realities---Software-Design-Guidelines--Public-?node-id=10001-74320&t=3TVk6VSECbCRvj0L-0)
+- Even Realities official Discord
