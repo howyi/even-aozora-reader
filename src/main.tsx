@@ -31,7 +31,6 @@ async function main() {
 		}
 	}
 
-	console.log(pageManager);
 	// biome-ignore lint/style/noNonNullAssertion: The root element is guaranteed to exist
 	createRoot(document.getElementById("root")!).render(
 		<StrictMode>

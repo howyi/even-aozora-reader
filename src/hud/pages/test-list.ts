@@ -24,9 +24,7 @@ export class TestList extends BasePage {
 		this.items = [
 			{
 				name: "test1",
-				onClick: () => {
-					console.log("Item clicked:", "test1");
-				},
+				onClick: () => {},
 			},
 			{
 				name: "splash-text",
@@ -60,27 +58,19 @@ export class TestList extends BasePage {
 			},
 			{
 				name: "test6",
-				onClick: () => {
-					console.log("Item clicked:", "test6");
-				},
+				onClick: () => {},
 			},
 			{
 				name: "test7",
-				onClick: () => {
-					console.log("Item clicked:", "test7");
-				},
+				onClick: () => {},
 			},
 			{
 				name: "test8    ",
-				onClick: () => {
-					console.log("Item clicked:", "test8");
-				},
+				onClick: () => {},
 			},
 			{
 				name: "test9",
-				onClick: () => {
-					console.log("Item clicked:", "test9");
-				},
+				onClick: () => {},
 			},
 		];
 		return new RebuildPageContainer({

@@ -20,29 +20,17 @@ export abstract class BasePage {
 		this.bridge = bridge;
 	}
 
-	onScrollUp(_event: Text_ItemEvent): void {
-		console.log("Scroll up event triggered");
-	}
+	onScrollUp(_event: Text_ItemEvent): void {}
 
-	onScrollDown(_event: Text_ItemEvent): void {
-		console.log("Scroll down event triggered");
-	}
+	onScrollDown(_event: Text_ItemEvent): void {}
 
-	onClick(_event: Sys_ItemEvent): void {
-		console.log("Click event triggered");
-	}
+	onClick(_event: Sys_ItemEvent): void {}
 
-	onDoubleClick(_event: Sys_ItemEvent): void {
-		console.log("Double click event triggered");
-	}
+	onDoubleClick(_event: Sys_ItemEvent): void {}
 
-	onListSelect(_event: List_ItemEvent): void {
-		console.log("List select event triggered");
-	}
+	onListSelect(_event: List_ItemEvent): void {}
 
-	onAudio(event: AudioEventPayload): void {
-		console.log("Audio event triggered", event.audioPcm?.length ?? 0);
-	}
+	onAudio(event: AudioEventPayload): void {}
 
 	abstract render(): RebuildPageContainer;
 

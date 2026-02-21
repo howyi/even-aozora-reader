@@ -58,7 +58,6 @@ export class PageManager {
 		if (result === StartUpPageCreateResult.success) {
 			await initialPage?.afterRender();
 		}
-		console.warn(result);
 		return result === StartUpPageCreateResult.success;
 	}
 
