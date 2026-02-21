@@ -10,7 +10,7 @@
 		"format": "biome format --write",
 		"preview": "vite preview",
 		"qr": "tsx scripts/evenhub-qr.ts",
-		"pack": "pnpm run build && evenhub pack app.json ./dist --output rdt.ehpk",
+		"pack": "pnpm run build && evenhub pack app.json ./dist --output eor.ehpk",
 		"pack:check": "evenhub pack app.json ./dist --check"
 	},
 	"dependencies": {

@@ -25,6 +25,17 @@ Official site: [Aozora Bunko](https://www.aozora.gr.jp/)
 - **evenhub-cli** for local emulator/dev workflow
 - **mise** for tool version management consistency
 
+## System architecture
+
+```text
+[G2 glasses] <--BLE--> [Even app / simulator] <--HTTP--> [Proxy Server] <--HTTP--> [Aozora Bunko]
+```
+
+`Proxy Server` is an Aozora Bunko **proxy API**.
+It provides APIs for Aozora Bunko work search and full-text retrieval.
+In this project, no app-specific backend server is required in this repository.
+The WebView is embedded in the Even app/simulator and calls the proxy API.
+
 ## Screenshots
 
 ### Even 
@@ -85,7 +96,7 @@ In the reader page:
   - Starts both the Even emulator and the WebView in one command.
 
 ## References
-
+- https://github.com/nickustinov/even-g2-notes/blob/main/G2.md
 - https://github.com/BxNxM/even-dev
 - https://github.com/fuutott/rdt-even-g2-rddit-client
 - [Even Hub App Guideline (Figma)](https://www.figma.com/design/X82y5uJvqMH95jgOfmV34j/Even-Realities---Software-Design-Guidelines--Public-?node-id=10001-74320&t=3TVk6VSECbCRvj0L-0)
