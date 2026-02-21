@@ -22,7 +22,11 @@ import {
 } from "./repositories/aozora-repository";
 
 function App({ manager }: { manager?: PageManager }) {
+	const SEARCH_DEBOUNCE_MS = 300;
+	const SEARCH_THROTTLE_MS = 800;
+
 	const [searchQuery, setSearchQuery] = useState("");
+	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 	const [currentlyReadingWorks, setCurrentlyReadingWorks] = useState<
 		AozoraWorkSummary[]
 	>([]);
@@ -40,21 +44,38 @@ function App({ manager }: { manager?: PageManager }) {
 	const detailPageRefs = useRef<Record<number, HTMLDivElement | null>>({});
 	const webviewScrollRef = useRef<HTMLDivElement | null>(null);
 	const detailHeaderRef = useRef<HTMLDivElement | null>(null);
+	const lastSearchExecutedAtRef = useRef(0);
 	const isSearching = Boolean(searchQuery.trim());
 
 	useEffect(() => {
-		let mounted = true;
-		(async () => {
-			const normalized = searchQuery.trim();
-			if (!normalized) {
-				setFilteredWorks([]);
-				setWorksError(null);
-				setLoadingWorks(false);
-				return;
-			}
+		const timer = window.setTimeout(() => {
+			setDebouncedSearchQuery(searchQuery);
+		}, SEARCH_DEBOUNCE_MS);
 
+		return () => {
+			window.clearTimeout(timer);
+		};
+	}, [searchQuery]);
+
+	useEffect(() => {
+		let mounted = true;
+		let timer: number | undefined;
+
+		const normalized = debouncedSearchQuery.trim();
+		if (!normalized) {
+			setFilteredWorks([]);
+			setWorksError(null);
+			setLoadingWorks(false);
+			return () => {
+				mounted = false;
+			};
+		}
+
+		const executeSearch = async () => {
 			setLoadingWorks(true);
 			setWorksError(null);
+			lastSearchExecutedAtRef.current = Date.now();
+
 			try {
 				const items = await aozoraRepository.searchWorks(normalized);
 				if (!mounted) return;
@@ -67,12 +88,26 @@ function App({ manager }: { manager?: PageManager }) {
 			} finally {
 				if (mounted) setLoadingWorks(false);
 			}
-		})();
+		};
+
+		const elapsed = Date.now() - lastSearchExecutedAtRef.current;
+		const wait = Math.max(0, SEARCH_THROTTLE_MS - elapsed);
+
+		if (wait === 0) {
+			void executeSearch();
+		} else {
+			timer = window.setTimeout(() => {
+				void executeSearch();
+			}, wait);
+		}
 
 		return () => {
 			mounted = false;
+			if (timer !== undefined) {
+				window.clearTimeout(timer);
+			}
 		};
-	}, [searchQuery]);
+	}, [debouncedSearchQuery]);
 
 	const currentlyReadingIds = useMemo(() => {
 		return Object.entries(progressMap)
