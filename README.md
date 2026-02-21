@@ -46,6 +46,14 @@ The WebView is embedded in the Even app/simulator and calls the proxy API.
 
 ![WebView screenshot](./docs/webview.png)
 
+## Try it now
+
+Scan the QR code below in the Even Realities app to use this on your Even G2.
+
+<p align="center">
+  <img src="./docs/qr.png" alt="Even G2 HUD screenshot" width="240" />
+</p>
+
 ## Requirements
 
 - `mise`

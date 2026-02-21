@@ -27,7 +27,16 @@ if (!ip) {
 }
 
 const extraArgs = process.argv.slice(2);
-const args = ["qr", "--port", "5173", "--path", "/", "--ip", ip, ...extraArgs];
+const args = [
+	"qr",
+	"--port",
+	"5173",
+	"--path",
+	"/even-aozora-reader/",
+	"--ip",
+	ip,
+	...extraArgs,
+];
 
 const child = spawn("evenhub", args, {
 	stdio: "inherit",
