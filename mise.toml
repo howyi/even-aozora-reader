@@ -7,6 +7,10 @@ node = '24.13.1'
 description = "Start development server and simulator"
 run = "npx concurrently \"pnpm dev\" \"npx wait-on tcp:5173 && evenhub-simulator http://localhost:5173\""
 
+[tasks.production]
+description = "Start production simulator"
+run = "evenhub-simulator http://howyi.github.io/even-aozora-reader/"
+
 [tasks.hostdist]
 description = "Serve built dist files locally"
 dir = "dist"

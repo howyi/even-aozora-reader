@@ -557,13 +557,13 @@ function App({ manager }: { manager?: PageManager }) {
 														type="button"
 														variant="secondary"
 														disabled={openingWorkId === work.id}
-														className="h-auto w-full items-start justify-between py-2"
+														className="h-auto w-full items-start justify-between py-2 whitespace-normal"
 														onClick={() => void openWork(work)}
 													>
 														<div className="min-w-0 flex-1 text-left">
 															<Text
 																size="normal-body"
-																className="block wrap-break-word"
+																className="block whitespace-normal break-all"
 															>
 																{work.title}
 															</Text>
@@ -637,13 +637,13 @@ function App({ manager }: { manager?: PageManager }) {
 														type="button"
 														variant="secondary"
 														disabled={openingWorkId === work.id}
-														className="h-auto w-full items-start justify-between py-2"
+														className="h-auto w-full items-start justify-between py-2 whitespace-normal"
 														onClick={() => void openWork(work)}
 													>
 														<div className="min-w-0 flex-1 text-left">
 															<Text
 																size="normal-body"
-																className="block wrap-break-word"
+																className="block whitespace-normal break-all"
 															>
 																{work.title}
 															</Text>
