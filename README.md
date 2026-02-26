@@ -1,4 +1,5 @@
 # even-aozora-reader
+[![Deploy static content to Pages](https://github.com/howyi/even-aozora-reader/actions/workflows/deploy.yml/badge.svg)](https://github.com/howyi/even-aozora-reader/actions/workflows/deploy.yml)
 
 <p align="center">
   <img src="./docs/glass1.png" alt="Even G2 HUD screenshot" width="420" />
