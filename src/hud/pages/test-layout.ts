@@ -107,8 +107,6 @@ export class TestLayout extends BasePage {
 		await this.bridge.rebuildPageContainer(this.render());
 		await this.sendTopLeftImage();
 		await this.updateChatContainers();
-
-		console.log("Switched isEventCapture target:", this.activeCapture);
 	}
 
 	private startFakeChatFeed() {

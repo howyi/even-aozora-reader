@@ -54,20 +54,13 @@ export class TestImage extends BasePage {
 			this.IMAGE_HEIGHT,
 		);
 
-		console.log("Sending image data...", {
-			length: imageData.length,
-			containerID: this.defaultContainerId,
-		});
-
-		const result = await this.bridge.updateImageRawData(
+		await this.bridge.updateImageRawData(
 			new ImageRawDataUpdate({
 				containerID: this.defaultContainerId,
 				containerName: this.defaultContainerName,
 				imageData,
 			}),
 		);
-
-		console.log("Image update result:", result);
 	}
 
 	/**
@@ -78,7 +71,6 @@ export class TestImage extends BasePage {
 		targetWidth: number,
 		targetHeight: number,
 	): Promise<number[]> {
-		console.log("Fetching image...", url);
 		const response = await fetch(url);
 		if (!response.ok) {
 			throw new Error(

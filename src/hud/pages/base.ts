@@ -30,7 +30,7 @@ export abstract class BasePage {
 
 	onListSelect(_event: List_ItemEvent): void {}
 
-	onAudio(event: AudioEventPayload): void {}
+	onAudio(_event: AudioEventPayload): void {}
 
 	abstract render(): RebuildPageContainer;
 
