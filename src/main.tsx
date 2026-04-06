@@ -20,12 +20,13 @@ async function main() {
 	if (bridge) {
 		try {
 			pageManager = new PageManager(bridge);
-			const result = await pageManager.init(
+			await pageManager.init(
 				new SplashText("アプリで作品を選択"),
 			);
-			if (!result && !import.meta.env.DEV) {
-				pageManager = undefined;
-			}
+			// TODO
+			// if (!result && !import.meta.env.DEV) {
+			// 	pageManager = undefined;
+			// }
 		} catch (e) {
 			console.warn("Glasses UI init failed", e);
 		}
