@@ -7,6 +7,7 @@ import searchIcon from "./components/icons/search.svg";
 import { Text } from "./components/text";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
+import { STARTUP_SPLASH_TEXT } from "./constants";
 import type { PageManager } from "./hud/page-manager";
 import { AozoraReaderPage } from "./hud/pages/aozora-reader";
 import { SplashText } from "./hud/pages/splash-text";
@@ -25,9 +26,11 @@ import {
 function App({
 	manager: initialManager,
 	reinitializeManager,
+	isBootstrapping = false,
 }: {
 	manager?: PageManager;
 	reinitializeManager?: () => Promise<PageManager | undefined>;
+	isBootstrapping?: boolean;
 }) {
 	const SEARCH_DEBOUNCE_MS = 300;
 	const SEARCH_THROTTLE_MS = 800;
@@ -326,7 +329,7 @@ function App({
 		setSearchQuery("");
 		detailPageRefs.current = {};
 		if (manager) {
-			await manager.load(new SplashText("アプリで作品を選択"));
+			await manager.load(new SplashText(STARTUP_SPLASH_TEXT));
 		}
 	};
 
@@ -349,6 +352,20 @@ function App({
 	const stopReading = () => {
 		window.location.reload();
 	};
+
+	if (!manager && isBootstrapping) {
+		return (
+			<div className="flex h-dvh items-center justify-center px-6">
+				<div className="flex w-full max-w-120 flex-col items-center gap-3 text-center">
+					<div className="size-8 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+					<Text size="normal-title">起動中...</Text>
+					<Text size="normal-body" className="text-muted-foreground">
+						グラス接続を確認しています
+					</Text>
+				</div>
+			</div>
+		);
+	}
 
 	if (!manager) {
 		return (

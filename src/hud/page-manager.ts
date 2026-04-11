@@ -1,12 +1,12 @@
 import {
 	CreateStartUpPageContainer,
-	DeviceConnectType,
 	type EvenAppBridge,
 	OsEventTypeList,
 	RebuildPageContainer,
 	StartUpPageCreateResult,
 	TextContainerProperty,
 } from "@evenrealities/even_hub_sdk";
+import { createBridgeConnector } from "./bridge-connector";
 import type { BasePage } from "./pages/base.ts";
 
 function pmDebug(message: string, level: "info" | "warn" | "error" = "info") {
@@ -26,37 +26,6 @@ function resolveWidgetIdFromWindow(): number | undefined {
 		if (Number.isFinite(parsed)) return parsed;
 	}
 	return undefined;
-}
-
-async function waitForConnected(
-	bridge: EvenAppBridge,
-	timeoutMs = 4000,
-): Promise<boolean> {
-	try {
-		const info = await bridge.getDeviceInfo();
-		const initialType = info?.status?.connectType;
-		pmDebug(`getDeviceInfo connectType: ${String(initialType)}`);
-		if (initialType === DeviceConnectType.Connected) {
-			return true;
-		}
-	} catch (e) {
-		pmDebug(`getDeviceInfo error: ${String(e)}`, "warn");
-	}
-
-	return await new Promise<boolean>((resolve) => {
-		const timer = window.setTimeout(() => {
-			unsubscribe();
-			resolve(false);
-		}, timeoutMs);
-
-		const unsubscribe = bridge.onDeviceStatusChanged((status) => {
-			if (status.connectType === DeviceConnectType.Connected) {
-				window.clearTimeout(timer);
-				unsubscribe();
-				resolve(true);
-			}
-		});
-	});
 }
 
 export class PageManager {
@@ -91,22 +60,21 @@ export class PageManager {
 			return true;
 		}
 
+		// 接続管理を統一するため bridge connector を使う
 		this.bridge.onDeviceStatusChanged((status) => {
-			pmDebug(
-				`onDeviceStatusChanged: connectType=${status.connectType} sn=${status.sn}`,
-			);
-			if (status.connectType === DeviceConnectType.Connected) {
-				pmDebug(`Device connected: ${status.sn}`);
-			}
+			pmDebug(`Device status: connectType=${status.connectType}`);
 		});
-		pmDebug("waiting for connected device before startup page...");
-		const connected = await waitForConnected(this.bridge, 4500);
-		pmDebug(`device connected before startup page: ${connected}`);
-		if (!connected) {
-			pmDebug(
-				"skip createStartUpPageContainer: device is not connected (connectType=none)",
-				"warn",
-			);
+
+		const connector = createBridgeConnector(this.bridge, {
+			timeoutMs: 4500,
+		});
+
+		try {
+			pmDebug("Connecting to device...");
+			await connector.connect();
+			pmDebug("Device connected");
+		} catch (e) {
+			pmDebug(`Device connection failed: ${String(e)}`, "error");
 			return false;
 		}
 
@@ -225,7 +193,7 @@ export class PageManager {
 				this.startupReady = false;
 				pmDebug(`rebuild fallback failed: ${String(e)}`, "error");
 				if (import.meta.env.DEV) {
-					// In emulator/dev browser, EvenHub APIs may be unavailable even when bridge exists.
+					// エミュレータ/開発ブラウザでは、bridge があっても EvenHub API が使えない場合がある。
 					this.startupReady = true;
 					this.bridgeUnavailable = true;
 					pmDebug(

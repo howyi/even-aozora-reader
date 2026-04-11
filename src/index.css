@@ -148,7 +148,7 @@
 	}
 	body {
 		@apply bg-background text-foreground;
-		/* style guideline normal-body */
+		/* スタイルガイドの normal-body */
 		font-size: 15px;
 		font-weight: 300;
 		line-height: normal;
