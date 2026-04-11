@@ -14,27 +14,23 @@ export class SplashText extends BasePage {
 	}
 
 	render(): RebuildPageContainer {
-		const containerHeight = GLASS_SCREEN_HEIGHT / 3;
-		const textContainers: TextContainerProperty[] = [];
-		[1, 2, 3].forEach((id, idx) => {
-			textContainers.push(
-				new TextContainerProperty({
-					xPosition: 20,
-					yPosition: idx * containerHeight,
-					width: GLASS_SCREEN_WIDTH - 40,
-					height: containerHeight,
-					borderWidth: 0,
-					borderColor: 5,
-					paddingLength: 2,
-					containerID: id,
-					containerName: `d-item-${idx + 1}`,
-					content: idx === 1 ? this.splashText : "",
-					isEventCapture: idx === 1 ? 1 : 0,
-				}),
-			);
-		});
+		const textContainers: TextContainerProperty[] = [
+			new TextContainerProperty({
+				xPosition: 0,
+				yPosition: 0,
+				width: GLASS_SCREEN_WIDTH,
+				height: GLASS_SCREEN_HEIGHT,
+				borderWidth: 0,
+				borderColor: 0,
+				paddingLength: 0,
+				containerID: 1,
+				containerName: "splash",
+				content: this.splashText,
+				isEventCapture: 1,
+			}),
+		];
 		return new RebuildPageContainer({
-			containerTotalNum: 3,
+			containerTotalNum: 1,
 			textObject: textContainers,
 		});
 	}

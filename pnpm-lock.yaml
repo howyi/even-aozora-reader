@@ -43,8 +43,8 @@ importers:
         specifier: ^9.39.1
         version: 9.39.3
       '@evenrealities/evenhub-cli':
-        specifier: ^0.1.5
-        version: 0.1.5(@types/node@24.10.13)(typescript@5.9.3)
+        specifier: ^0.1.11
+        version: 0.1.11(@types/node@24.10.13)(typescript@5.9.3)
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.13
@@ -458,8 +458,8 @@ packages:
     resolution: {integrity: sha512-95zmlbFzyyh+TxPz5Wq8Ix4IxUDZzo/WJWAUXPQ/83kaU8R78MOYYBgKDM47Yw61LoEn+Ob5GNLDu/T9bj85xA==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
-  '@evenrealities/evenhub-cli@0.1.5':
-    resolution: {integrity: sha512-wINkUbVXxTNmkYJ0RWLsQ2RIvwvvSq8ONyGixGgPvtrg2qGV/xfT2Q/x/CJTZjkqC+IWw4zjsUkhpttyWMUPvw==}
+  '@evenrealities/evenhub-cli@0.1.11':
+    resolution: {integrity: sha512-NDbku18NzYH15g+OxB/6FtMW2m+ySneG87GXOxsWoTdCFgpobVTYNJjjZMoUdyTy4NwfMElziDRBVmaCZE2eMg==}
     hasBin: true
     peerDependencies:
       typescript: ^5
@@ -995,9 +995,6 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
-
-  '@types/js-yaml@4.0.9':
-    resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -1873,15 +1870,6 @@ packages:
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
-
-  inquirer-file-selector@1.0.1:
-    resolution: {integrity: sha512-7h5ENqokfj7ywkwLzB1mm8/W8iSYE92TRkRvclN7kyM9g8uAqpAh+AMogHKFuCJaPUVOFEZ0rvnHZZ8JOkn0ug==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@types/node': '>=20'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
 
   inquirer-promise@0.0.3:
     resolution: {integrity: sha512-82CQX586JAV9GAgU9yXZsMDs+NorjA0nLhkfFx9+PReyOnuoHRbHrC1Z90sS95bFJI1Tm1gzMObuE0HabzkJpg==}
@@ -3408,13 +3396,11 @@ snapshots:
 
   '@evenrealities/even_hub_sdk@0.0.10': {}
 
-  '@evenrealities/evenhub-cli@0.1.5(@types/node@24.10.13)(typescript@5.9.3)':
+  '@evenrealities/evenhub-cli@0.1.11(@types/node@24.10.13)(typescript@5.9.3)':
     dependencies:
-      '@types/js-yaml': 4.0.9
       chalk: 5.6.2
       commander: 14.0.3
       inquirer: 13.2.5(@types/node@24.10.13)
-      inquirer-file-selector: 1.0.1(@types/node@24.10.13)
       js-yaml: 4.1.1
       open: 11.0.0
       qrcode: 1.5.4
@@ -3860,8 +3846,6 @@ snapshots:
   '@types/esrecurse@4.3.1': {}
 
   '@types/estree@1.0.8': {}
-
-  '@types/js-yaml@4.0.9': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -4788,15 +4772,6 @@ snapshots:
       wrappy: 1.0.2
 
   inherits@2.0.4: {}
-
-  inquirer-file-selector@1.0.1(@types/node@24.10.13):
-    dependencies:
-      '@inquirer/core': 10.3.2(@types/node@24.10.13)
-      '@inquirer/figures': 1.0.15
-      '@inquirer/type': 3.0.10(@types/node@24.10.13)
-      chalk: 5.6.2
-    optionalDependencies:
-      '@types/node': 24.10.13
 
   inquirer-promise@0.0.3:
     dependencies:

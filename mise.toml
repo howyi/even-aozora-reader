@@ -1,7 +1,7 @@
 [tools]
 pnpm = '10.30.0'
 node = '24.13.1'
-"npm:@evenrealities/evenhub-simulator" = "0.3.2"
+"npm:@evenrealities/evenhub-simulator" = "0.7.1"
 
 [tasks.dev]
 description = "Start development server and simulator"

@@ -24,10 +24,7 @@ async function main() {
 	if (bridge) {
 		try {
 			pageManager = new PageManager(bridge);
-			await pageManager.init(
-				new SplashText("アプリで作品を選択"),
-			);
-			// TODO
+			await pageManager.init(new SplashText("アプリで作品を選択"));
 			// if (!result && !import.meta.env.DEV) {
 			// 	pageManager = undefined;
 			// }

@@ -63,6 +63,12 @@ export class PageManager {
 	private currentPage?: BasePage;
 	private bridge: EvenAppBridge;
 	private startupReady = false;
+	private bridgeUnavailable = false;
+
+	private shouldUseDegradedMode(): boolean {
+		const forceEvenHubInDev = import.meta.env.VITE_FORCE_EVENHUB === "true";
+		return import.meta.env.DEV && !forceEvenHubInDev;
+	}
 
 	constructor(bridge: EvenAppBridge) {
 		this.bridge = bridge;
@@ -70,8 +76,25 @@ export class PageManager {
 
 	async init(initialPage: BasePage): Promise<boolean> {
 		this.startupReady = false;
+		this.bridgeUnavailable = false;
+
+		if (this.shouldUseDegradedMode()) {
+			this.startupReady = true;
+			this.bridgeUnavailable = true;
+			this.currentPage = initialPage;
+			initialPage.init(this.load.bind(this), this.bridge);
+			await initialPage.afterRender();
+			pmDebug(
+				"DEV webview-only mode enabled. Set VITE_FORCE_EVENHUB=true to enable bridge APIs.",
+				"warn",
+			);
+			return true;
+		}
+
 		this.bridge.onDeviceStatusChanged((status) => {
-			pmDebug(`onDeviceStatusChanged: connectType=${status.connectType} sn=${status.sn}`);
+			pmDebug(
+				`onDeviceStatusChanged: connectType=${status.connectType} sn=${status.sn}`,
+			);
 			if (status.connectType === DeviceConnectType.Connected) {
 				pmDebug(`Device connected: ${status.sn}`);
 			}
@@ -112,62 +135,59 @@ export class PageManager {
 				this.currentPage?.onAudio(event.audioEvent);
 			}
 		});
-		this.currentPage = initialPage;
-		initialPage.init(this.load.bind(this), this.bridge);
-		const rendered = initialPage.render();
 
-		// rendered の own keys を確認（spread が効かない場合を検出）
-		pmDebug(`rendered own keys: ${JSON.stringify(Object.keys(rendered))}`);
-		pmDebug(`rendered JSON: ${JSON.stringify(rendered)}`);
-
-		// window 上の Even App 系プロパティを確認（widgetId の有無など）
-		const evenWindowKeys = Object.keys(window).filter(
-			(k) =>
-				k.toLowerCase().includes("even") ||
-				k.toLowerCase().includes("widget") ||
-				k.toLowerCase().includes("eh_"),
-		);
-		pmDebug(`window even* keys: ${JSON.stringify(evenWindowKeys)}`);
-
-		const container = new CreateStartUpPageContainer({
-			containerTotalNum: rendered.containerTotalNum,
-			listObject: rendered.listObject,
-			textObject: rendered.textObject,
-			imageObject: rendered.imageObject,
-		});
 		const explicitWidgetId = resolveWidgetIdFromWindow();
-		const rawAppId = Reflect.get(window as unknown as object, "__EVEN_HUB_APP_ID__");
+		const rawAppId = Reflect.get(
+			window as unknown as object,
+			"__EVEN_HUB_APP_ID__",
+		);
 		pmDebug(
 			`window.__EVEN_HUB_APP_ID__: ${String(rawAppId)} (resolved=${String(explicitWidgetId)})`,
 		);
-		pmDebug(`container toJson: ${JSON.stringify(CreateStartUpPageContainer.toJson(container))}`);
 
-		let result = await this.bridge.createStartUpPageContainer(container);
+		const startupContainer = new CreateStartUpPageContainer({
+			containerTotalNum: 1,
+			textObject: [
+				new TextContainerProperty({
+					containerID: 1,
+					containerName: "boot",
+					xPosition: 0,
+					yPosition: 0,
+					width: 576,
+					height: 288,
+					borderWidth: 0,
+					borderColor: 0,
+					paddingLength: 0,
+					isEventCapture: 1,
+					content: "loading",
+				}),
+			],
+		});
+		pmDebug(
+			`startup container toJson: ${JSON.stringify(CreateStartUpPageContainer.toJson(startupContainer))}`,
+		);
 
+		let result = await this.bridge.createStartUpPageContainer(startupContainer);
 		if (
 			result === StartUpPageCreateResult.invalid &&
 			explicitWidgetId !== undefined
 		) {
-			pmDebug("retry createStartUpPageContainer with explicit widgetId", "warn");
-			const retryPayload = {
-				...CreateStartUpPageContainer.toJson(container),
+			const startupPayload = {
+				...CreateStartUpPageContainer.toJson(startupContainer),
 				widgetId: explicitWidgetId,
 			};
-			pmDebug(`retry payload: ${JSON.stringify(retryPayload)}`, "warn");
-			const retryRaw = await this.bridge.callEvenApp(
+			const startupRaw = await this.bridge.callEvenApp(
 				"createStartUpPageContainer",
-				retryPayload,
+				startupPayload,
 			);
-			const retryNumber = Number(retryRaw);
-			if (Number.isFinite(retryNumber)) {
-				result = StartUpPageCreateResult.fromInt(retryNumber);
-				pmDebug(
-					`retry result(raw): ${String(retryRaw)} normalized: ${result}`,
-					retryNumber === StartUpPageCreateResult.success ? "info" : "error",
-				);
-			} else {
-				pmDebug(`retry result is not numeric: ${String(retryRaw)}`, "error");
+			const startupRawNumber = Number(startupRaw);
+			if (Number.isFinite(startupRawNumber)) {
+				result = StartUpPageCreateResult.fromInt(startupRawNumber);
 			}
+			pmDebug(
+				`startup raw result: ${String(startupRaw)} normalized: ${String(result)}`,
+				result === StartUpPageCreateResult.success ? "warn" : "error",
+			);
 		}
 		const resultNames: Record<number, string> = {
 			0: "success",
@@ -180,9 +200,48 @@ export class PageManager {
 			`createStartUpPageContainer result: ${result} (${resultName})`,
 			result === StartUpPageCreateResult.success ? "info" : "error",
 		);
+
+		if (result === StartUpPageCreateResult.invalid && import.meta.env.DEV) {
+			this.startupReady = true;
+			this.bridgeUnavailable = true;
+			pmDebug(
+				"startup invalid in DEV. Entering degraded mode (webview only).",
+				"warn",
+			);
+			return true;
+		}
+
+		if (result === StartUpPageCreateResult.invalid) {
+			pmDebug(
+				"startup invalid detected; trying rebuild fallback for existing session",
+				"warn",
+			);
+			try {
+				this.startupReady = true;
+				await this.load(initialPage);
+				pmDebug("rebuild fallback succeeded", "warn");
+				return true;
+			} catch (e) {
+				this.startupReady = false;
+				pmDebug(`rebuild fallback failed: ${String(e)}`, "error");
+				if (import.meta.env.DEV) {
+					// In emulator/dev browser, EvenHub APIs may be unavailable even when bridge exists.
+					this.startupReady = true;
+					this.bridgeUnavailable = true;
+					pmDebug(
+						"EvenHub unavailable in DEV. Entering degraded mode (webview only).",
+						"warn",
+					);
+					return true;
+				}
+				return false;
+			}
+		}
+
 		if (result === StartUpPageCreateResult.success) {
 			this.startupReady = true;
-			await initialPage?.afterRender();
+			this.bridgeUnavailable = false;
+			await this.load(initialPage);
 		}
 		return result === StartUpPageCreateResult.success;
 	}
@@ -192,6 +251,12 @@ export class PageManager {
 			throw new Error(
 				"グラスの表示コンテナ初期化に失敗しています。接続状態を確認して再度お試しください。",
 			);
+		}
+		if (this.bridgeUnavailable) {
+			this.currentPage = page;
+			page.init(this.load.bind(this), this.bridge);
+			await page.afterRender();
+			return;
 		}
 		this.currentPage = page;
 		page.init(this.load.bind(this), this.bridge);
@@ -213,31 +278,20 @@ export class PageManager {
 				"rebuildPageContainer",
 				RebuildPageContainer.toJson(rendered),
 			);
-			pmDebug(`raw callEvenApp(rebuildPageContainer) result: ${String(rawRetry)}`, "error");
-
-			const minimal = new RebuildPageContainer({
-				containerTotalNum: 1,
-				textObject: [
-					new TextContainerProperty({
-						containerID: 1,
-						containerName: "diag",
-						xPosition: 0,
-						yPosition: 0,
-						width: 576,
-						height: 288,
-						borderWidth: 0,
-						borderColor: 0,
-						paddingLength: 0,
-						isEventCapture: 1,
-						content: "diagnostic",
-					}),
-				],
-			});
-			const minimalResult = await this.bridge.rebuildPageContainer(minimal);
 			pmDebug(
-				`minimal rebuild result: ${String(minimalResult)} payload=${JSON.stringify(minimal)}`,
-				minimalResult ? "warn" : "error",
+				`raw callEvenApp(rebuildPageContainer) result: ${String(rawRetry)}`,
+				"error",
 			);
+
+			if (import.meta.env.DEV && rawRetry === false) {
+				this.bridgeUnavailable = true;
+				pmDebug(
+					"rebuild unavailable in DEV. Switched to degraded mode (webview only).",
+					"warn",
+				);
+				await page.afterRender();
+				return;
+			}
 
 			const textDiagnostics = (rendered.textObject ?? [])
 				.map(
@@ -245,12 +299,8 @@ export class PageManager {
 						`id=${String(t.containerID)} name=${String(t.containerName)} nameLen=${String((t.containerName ?? "").length)} chars=${String((t.content ?? "").length)} bytes=${String(utf8Bytes(t.content))}`,
 				)
 				.join(" | ");
-
-			const diagnosis = minimalResult
-				? "minimal=ok: 本文ペイロード要因の可能性が高い"
-				: "minimal=ng: セッション/ホスト状態要因の可能性が高い";
 			throw new Error(
-				`グラス側ページ更新に失敗しました。${diagnosis} / raw=${String(rawRetry)} / text=[${textDiagnostics}]`,
+				`グラス側ページ更新に失敗しました。raw=${String(rawRetry)} / text=[${textDiagnostics}]`,
 			);
 		}
 		await page?.afterRender();

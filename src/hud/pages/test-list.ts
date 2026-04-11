@@ -85,7 +85,7 @@ export class TestList extends BasePage {
 					height: GLASS_SCREEN_HEIGHT,
 					borderWidth: 1,
 					borderColor: 13,
-					borderRdaius: 6,
+					borderRadius: 6,
 					paddingLength: 5,
 					isEventCapture: 1,
 					itemContainer: new ListItemContainerProperty({
