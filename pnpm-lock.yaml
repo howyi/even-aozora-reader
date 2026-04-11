@@ -12,8 +12,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@evenrealities/even_hub_sdk':
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: ^0.0.10
+        version: 0.0.10
       '@tailwindcss/vite':
         specifier: ^4.2.0
         version: 4.2.0(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
@@ -454,8 +454,8 @@ packages:
     resolution: {integrity: sha512-bIZEUzOI1jkhviX2cp5vNyXQc6olzb2ohewQubuYlMXZ2Q/XjBO0x0XhGPvc9fjSIiUN0vw+0hq53BJ4eQSJKQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@evenrealities/even_hub_sdk@0.0.7':
-    resolution: {integrity: sha512-AInCBaNl+RsjnjsxkrPds2XkMyi8w35nF7daHjz7YrgMm8bkJrDDrr4eBatTj/PwjzuEy4C6XY2e+s6Fut0Wlg==}
+  '@evenrealities/even_hub_sdk@0.0.10':
+    resolution: {integrity: sha512-95zmlbFzyyh+TxPz5Wq8Ix4IxUDZzo/WJWAUXPQ/83kaU8R78MOYYBgKDM47Yw61LoEn+Ob5GNLDu/T9bj85xA==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
   '@evenrealities/evenhub-cli@0.1.5':
@@ -3406,7 +3406,7 @@ snapshots:
       '@eslint/core': 1.1.0
       levn: 0.4.1
 
-  '@evenrealities/even_hub_sdk@0.0.7': {}
+  '@evenrealities/even_hub_sdk@0.0.10': {}
 
   '@evenrealities/evenhub-cli@0.1.5(@types/node@24.10.13)(typescript@5.9.3)':
     dependencies:

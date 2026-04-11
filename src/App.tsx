@@ -173,7 +173,11 @@ function App({ manager }: { manager?: PageManager }) {
 	};
 
 	const openOnGlasses = async (work: AozoraWork, startPage: number) => {
-		if (!manager) return;
+		if (!manager) {
+			throw new Error(
+				"グラス表示が初期化できていません。接続状態を確認してアプリを再起動してください。",
+			);
+		}
 		await manager.load(
 			new AozoraReaderPage(work, startPage, onProgressChanged),
 		);

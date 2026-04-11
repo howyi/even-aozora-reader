@@ -9,6 +9,8 @@ import type { AozoraWork } from "@/repositories/aozora-repository";
 import { BasePage } from "./base";
 
 export class AozoraReaderPage extends BasePage {
+	private static readonly MAX_BODY_BYTES = 900;
+	private readonly encoder = new TextEncoder();
 	private work: AozoraWork;
 	private pages: string[];
 	private currentPageIndex: number;
@@ -43,41 +45,34 @@ export class AozoraReaderPage extends BasePage {
 	}
 
 	render(): RebuildPageContainer {
-		const headerHeight = 34;
 		const currentPage = this.pages[this.currentPageIndex] ?? "";
+		const headerText = `${this.work.title}  ${this.currentPageIndex + 1}/${this.pages.length}`;
 		const topHint = this.currentPageIndex >= 1 ? "*ダブルクリックで戻る" : "";
-		const bodyContent = [topHint, currentPage, "*クリックで次のページ"]
-			.filter((line) => line.length > 0)
-			.join("\n\n");
+		const pageContent = this.fitToContainerLimit(
+			[topHint, currentPage, "*クリックで次のページ"]
+				.filter((line) => line.length > 0)
+				.join("\n\n"),
+			AozoraReaderPage.MAX_BODY_BYTES,
+		);
+		const mergedContent = this.fitToContainerLimit(
+			[headerText, pageContent].join("\n\n"),
+			AozoraReaderPage.MAX_BODY_BYTES,
+		);
 
 		return new RebuildPageContainer({
-			containerTotalNum: 2,
+			containerTotalNum: 1,
 			textObject: [
 				new TextContainerProperty({
-					xPosition: 12,
+					xPosition: 0,
 					yPosition: 0,
-					width: GLASS_SCREEN_WIDTH - 24,
-					height: headerHeight,
+					width: GLASS_SCREEN_WIDTH,
+					height: GLASS_SCREEN_HEIGHT,
 					borderWidth: 0,
-					borderColor: 5,
-					paddingLength: 2,
+					borderColor: 0,
+					paddingLength: 0,
 					containerID: 1,
-					containerName: "hdr",
-					content: `${this.work.title}  ${this.currentPageIndex + 1}/${this.pages.length}`,
-					isEventCapture: 0,
-				}),
-				new TextContainerProperty({
-					xPosition: 12,
-					yPosition: headerHeight,
-					width: GLASS_SCREEN_WIDTH - 24,
-					height: GLASS_SCREEN_HEIGHT - headerHeight,
-					borderWidth: 1,
-					borderColor: 5,
-					paddingLength: 2,
-					borderRdaius: 6,
-					containerID: 2,
-					containerName: "body",
-					content: bodyContent,
+					containerName: "read",
+					content: mergedContent,
 					isEventCapture: 1,
 				}),
 			],
@@ -92,8 +87,28 @@ export class AozoraReaderPage extends BasePage {
 
 	private async refresh(): Promise<void> {
 		if (!this.bridge) return;
-		await this.bridge.rebuildPageContainer(this.render());
+		const rebuilt = await this.bridge.rebuildPageContainer(this.render());
+		if (!rebuilt) {
+			throw new Error("グラス本文の更新に失敗しました");
+		}
 		this.persistProgress();
+	}
+
+	private fitToContainerLimit(text: string, maxBytes: number): string {
+		if (this.encoder.encode(text).length <= maxBytes) {
+			return text;
+		}
+
+		const ellipsis = "…";
+		let out = "";
+		for (const ch of Array.from(text)) {
+			const next = out + ch;
+			if (this.encoder.encode(next + ellipsis).length > maxBytes) {
+				break;
+			}
+			out = next;
+		}
+		return out.length > 0 ? `${out}${ellipsis}` : ellipsis;
 	}
 
 	private persistProgress(): void {

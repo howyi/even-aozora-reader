@@ -13,7 +13,7 @@ export abstract class BasePage {
 	protected loadPage?: PageLoadFunction;
 	protected bridge?: EvenAppBridge;
 	protected defaultContainerId = 1;
-	protected defaultContainerName = "default-container";
+	protected defaultContainerName = "default";
 
 	init(loadPage: PageLoadFunction, bridge: EvenAppBridge) {
 		this.loadPage = loadPage;

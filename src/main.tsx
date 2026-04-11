@@ -9,11 +9,15 @@ import { withTimeout } from "./utils.ts";
 
 async function main() {
 	let bridge: Awaited<ReturnType<typeof waitForEvenAppBridge>> | null = null;
-	bridge = await withTimeout(
-		waitForEvenAppBridge(),
-		2500,
-		"waitForEvenAppBridge",
-	);
+	try {
+		bridge = await withTimeout(
+			waitForEvenAppBridge(),
+			2500,
+			"waitForEvenAppBridge",
+		);
+	} catch (e) {
+		console.error("waitForEvenAppBridge error", e);
+	}
 
 	let pageManager: PageManager | undefined;
 

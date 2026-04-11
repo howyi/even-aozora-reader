@@ -42,7 +42,7 @@ export class TestLayout extends BasePage {
 			imageObject: [
 				new ImageContainerProperty({
 					containerID: this.IMAGE_CONTAINER_ID,
-					containerName: "layout-image-top-left",
+					containerName: "lay-img-top",
 					xPosition: 0,
 					yPosition: 0,
 					width: this.leftWidth,
@@ -52,7 +52,7 @@ export class TestLayout extends BasePage {
 			textObject: [
 				new TextContainerProperty({
 					containerID: this.LEFT_CHAT_CONTAINER_ID,
-					containerName: "layout-chat-left-bottom",
+					containerName: "lay-chat-left",
 					xPosition: 0,
 					yPosition: this.leftTopHeight,
 					width: this.leftWidth,
@@ -68,7 +68,7 @@ export class TestLayout extends BasePage {
 				}),
 				new TextContainerProperty({
 					containerID: this.RIGHT_CHAT_CONTAINER_ID,
-					containerName: "layout-chat-right",
+					containerName: "lay-chat-right",
 					xPosition: this.rightX,
 					yPosition: 0,
 					width: this.rightWidth,
@@ -182,7 +182,7 @@ export class TestLayout extends BasePage {
 		await this.bridge.updateImageRawData(
 			new ImageRawDataUpdate({
 				containerID: this.IMAGE_CONTAINER_ID,
-				containerName: "layout-image-top-left",
+				containerName: "lay-img-top",
 				imageData,
 			}),
 		);

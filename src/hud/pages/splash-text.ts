@@ -27,7 +27,7 @@ export class SplashText extends BasePage {
 					borderColor: 5,
 					paddingLength: 2,
 					containerID: id,
-					containerName: `${this.defaultContainerName}-item-${idx + 1}`,
+					containerName: `d-item-${idx + 1}`,
 					content: idx === 1 ? this.splashText : "",
 					isEventCapture: idx === 1 ? 1 : 0,
 				}),
