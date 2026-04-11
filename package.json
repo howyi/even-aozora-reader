@@ -6,12 +6,15 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
+		"build:pack": "tsc -b && VITE_BASE=./ vite build",
 		"lint": "biome check",
 		"format": "biome format --write",
 		"preview": "vite preview",
 		"qr": "tsx scripts/evenhub-qr.ts",
-		"pack": "pnpm run build && evenhub pack app.json ./dist --output eor.ehpk",
-		"pack:check": "evenhub pack app.json ./dist --check"
+		"pack:login": "evenhub login",
+		"pack:pack": "pnpm run build:pack && evenhub pack app.json dist",
+		"pack:check": "pnpm run build:pack && evenhub pack app.json dist --check",
+		"pack:version": "evenhub -V"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.2.0",
@@ -27,7 +30,6 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.1",
-		"@evenrealities/evenhub-cli": "^0.1.11",
 		"@types/node": "^24.10.1",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",

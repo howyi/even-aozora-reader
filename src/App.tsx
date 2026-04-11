@@ -22,7 +22,13 @@ import {
 	aozoraRepository,
 } from "./repositories/aozora-repository";
 
-function App({ manager }: { manager?: PageManager }) {
+function App({
+	manager: initialManager,
+	reinitializeManager,
+}: {
+	manager?: PageManager;
+	reinitializeManager?: () => Promise<PageManager | undefined>;
+}) {
 	const SEARCH_DEBOUNCE_MS = 300;
 	const SEARCH_THROTTLE_MS = 800;
 
@@ -47,6 +53,22 @@ function App({ manager }: { manager?: PageManager }) {
 	const detailHeaderRef = useRef<HTMLDivElement | null>(null);
 	const lastSearchExecutedAtRef = useRef(0);
 	const isSearching = Boolean(searchQuery.trim());
+	const [manager, setManager] = useState<PageManager | undefined>(
+		initialManager,
+	);
+
+	useEffect(() => {
+		setManager(initialManager);
+	}, [initialManager]);
+
+	const reconnectManager = useCallback(async () => {
+		if (!reinitializeManager) return undefined;
+		const nextManager = await reinitializeManager();
+		if (nextManager) {
+			setManager(nextManager);
+		}
+		return nextManager;
+	}, [reinitializeManager]);
 
 	useEffect(() => {
 		const timer = window.setTimeout(() => {
@@ -173,14 +195,29 @@ function App({ manager }: { manager?: PageManager }) {
 	};
 
 	const openOnGlasses = async (work: AozoraWork, startPage: number) => {
-		if (!manager) {
+		let availableManager = manager;
+		if (!availableManager) {
+			availableManager = await reconnectManager();
+		}
+
+		if (!availableManager) {
 			throw new Error(
 				"グラス表示が初期化できていません。接続状態を確認してアプリを再起動してください。",
 			);
 		}
-		await manager.load(
-			new AozoraReaderPage(work, startPage, onProgressChanged),
-		);
+
+		const page = new AozoraReaderPage(work, startPage, onProgressChanged);
+
+		try {
+			await availableManager.load(page);
+		} catch (error) {
+			console.warn("Load failed. Reinitializing manager and retrying.", error);
+			const retriedManager = await reconnectManager();
+			if (!retriedManager) {
+				throw error;
+			}
+			await retriedManager.load(page);
+		}
 	};
 
 	const openWork = async (

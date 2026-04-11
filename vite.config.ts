@@ -4,15 +4,21 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 // https://vite.dev/config/
-export default defineConfig({
-	base: "/even-aozora-reader/",
-	server: {
-		host: true,
-	},
-	plugins: [react(), tailwindcss()],
-	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+	const base =
+		process.env.VITE_BASE ??
+		(mode === "production" ? "/even-aozora-reader/" : "/");
+
+	return {
+		base,
+		server: {
+			host: true,
 		},
-	},
+		plugins: [react(), tailwindcss()],
+		resolve: {
+			alias: {
+				"@": path.resolve(__dirname, "./src"),
+			},
+		},
+	};
 });
