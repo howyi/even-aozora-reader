@@ -2,30 +2,25 @@ import {
 	CreateStartUpPageContainer,
 	type EvenAppBridge,
 	OsEventTypeList,
-	RebuildPageContainer,
 	StartUpPageCreateResult,
 	TextContainerProperty,
 } from "@evenrealities/even_hub_sdk";
 import { createBridgeConnector } from "./bridge-connector";
+import { HUD_ERRORS } from "./errors";
+import { getRawEventType, normalizeEventType } from "./even-events";
+import { createLogger } from "./logger";
 import type { BasePage } from "./pages/base.ts";
 
-function pmDebug(message: string, level: "info" | "warn" | "error" = "info") {
-	console[level](`[PageManager] ${message}`);
-}
+const log = createLogger("PageManager");
+const VITE_ENV = (
+	import.meta as unknown as {
+		env?: { DEV?: boolean; VITE_FORCE_EVENHUB?: string };
+	}
+).env ?? { DEV: false, VITE_FORCE_EVENHUB: undefined };
 
 function utf8Bytes(text: string | undefined): number {
 	if (!text) return 0;
 	return new TextEncoder().encode(text).length;
-}
-
-function resolveWidgetIdFromWindow(): number | undefined {
-	const raw = Reflect.get(window as unknown as object, "__EVEN_HUB_APP_ID__");
-	if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-	if (typeof raw === "string") {
-		const parsed = Number(raw);
-		if (Number.isFinite(parsed)) return parsed;
-	}
-	return undefined;
 }
 
 export class PageManager {
@@ -33,87 +28,94 @@ export class PageManager {
 	private bridge: EvenAppBridge;
 	private startupReady = false;
 	private bridgeUnavailable = false;
+	private eventListenerRegistered = false;
 
 	private shouldUseDegradedMode(): boolean {
-		const forceEvenHubInDev = import.meta.env.VITE_FORCE_EVENHUB === "true";
-		return import.meta.env.DEV && !forceEvenHubInDev;
+		const forceEvenHubInDev = VITE_ENV.VITE_FORCE_EVENHUB === "true";
+		return Boolean(VITE_ENV.DEV) && !forceEvenHubInDev;
 	}
 
 	constructor(bridge: EvenAppBridge) {
 		this.bridge = bridge;
 	}
 
-	async init(initialPage: BasePage): Promise<boolean> {
-		this.startupReady = false;
-		this.bridgeUnavailable = false;
+	private async activateDegradedMode(initialPage: BasePage): Promise<boolean> {
+		this.startupReady = true;
+		this.bridgeUnavailable = true;
+		this.currentPage = initialPage;
+		initialPage.init(this.load.bind(this), this.bridge);
+		await initialPage.afterRender();
+		log.warn(
+			"DEV webview-only mode enabled. Set VITE_FORCE_EVENHUB=true to enable bridge APIs.",
+		);
+		return true;
+	}
 
-		if (this.shouldUseDegradedMode()) {
-			this.startupReady = true;
-			this.bridgeUnavailable = true;
-			this.currentPage = initialPage;
-			initialPage.init(this.load.bind(this), this.bridge);
-			await initialPage.afterRender();
-			pmDebug(
-				"DEV webview-only mode enabled. Set VITE_FORCE_EVENHUB=true to enable bridge APIs.",
-				"warn",
-			);
-			return true;
-		}
-
-		// 接続管理を統一するため bridge connector を使う
+	private async ensureDeviceConnected(): Promise<boolean> {
 		this.bridge.onDeviceStatusChanged((status) => {
-			pmDebug(`Device status: connectType=${status.connectType}`);
+			log.debug(`Device status: connectType=${status.connectType}`);
 		});
 
 		const connector = createBridgeConnector(this.bridge, {
-			timeoutMs: 4500,
+			timeoutMs: 2500,
 		});
 
 		try {
-			pmDebug("Connecting to device...");
+			log.info("Connecting to device...");
 			await connector.connect();
-			pmDebug("Device connected");
-		} catch (e) {
-			pmDebug(`Device connection failed: ${String(e)}`, "error");
+			log.info("Device connected");
+			return true;
+		} catch (error) {
+			log.error("Device connection failed", error);
 			return false;
 		}
+	}
+
+	private registerEventRouter(): void {
+		if (this.eventListenerRegistered) return;
+		this.eventListenerRegistered = true;
 
 		this.bridge.onEvenHubEvent((event) => {
-			console.log("🎯 Bridge received event (before onEvenHubEvent):", event);
+			const normalizedType = normalizeEventType(getRawEventType(event));
+
 			if (event.listEvent) {
 				this.currentPage?.onListSelect(event.listEvent);
-			} else if (event.textEvent) {
-				const eventType = event.textEvent.eventType;
-				if (eventType === OsEventTypeList.SCROLL_TOP_EVENT) {
+				return;
+			}
+
+			if (event.textEvent) {
+				if (normalizedType === OsEventTypeList.SCROLL_TOP_EVENT) {
 					this.currentPage?.onScrollUp(event.textEvent);
-				} else if (eventType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
+					return;
+				}
+				if (normalizedType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
 					this.currentPage?.onScrollDown(event.textEvent);
 				}
-			} else if (event.sysEvent) {
-				const eventType = event.sysEvent.eventType;
+				return;
+			}
+
+			if (event.sysEvent) {
 				if (
-					eventType === OsEventTypeList.CLICK_EVENT ||
-					eventType === undefined
+					normalizedType === OsEventTypeList.CLICK_EVENT ||
+					normalizedType === undefined
 				) {
 					this.currentPage?.onClick(event.sysEvent);
-				} else if (eventType === OsEventTypeList.DOUBLE_CLICK_EVENT) {
+					return;
+				}
+				if (normalizedType === OsEventTypeList.DOUBLE_CLICK_EVENT) {
 					this.currentPage?.onDoubleClick(event.sysEvent);
 				}
-			} else if (event.audioEvent) {
+				return;
+			}
+
+			if (event.audioEvent) {
 				this.currentPage?.onAudio(event.audioEvent);
 			}
 		});
+	}
 
-		const explicitWidgetId = resolveWidgetIdFromWindow();
-		const rawAppId = Reflect.get(
-			window as unknown as object,
-			"__EVEN_HUB_APP_ID__",
-		);
-		pmDebug(
-			`window.__EVEN_HUB_APP_ID__: ${String(rawAppId)} (resolved=${String(explicitWidgetId)})`,
-		);
-
-		const startupContainer = new CreateStartUpPageContainer({
+	private buildStartupContainer() {
+		return new CreateStartUpPageContainer({
 			containerTotalNum: 1,
 			textObject: [
 				new TextContainerProperty({
@@ -131,32 +133,13 @@ export class PageManager {
 				}),
 			],
 		});
-		pmDebug(
-			`startup container toJson: ${JSON.stringify(CreateStartUpPageContainer.toJson(startupContainer))}`,
-		);
+	}
 
-		let result = await this.bridge.createStartUpPageContainer(startupContainer);
-		if (
-			result === StartUpPageCreateResult.invalid &&
-			explicitWidgetId !== undefined
-		) {
-			const startupPayload = {
-				...CreateStartUpPageContainer.toJson(startupContainer),
-				widgetId: explicitWidgetId,
-			};
-			const startupRaw = await this.bridge.callEvenApp(
-				"createStartUpPageContainer",
-				startupPayload,
-			);
-			const startupRawNumber = Number(startupRaw);
-			if (Number.isFinite(startupRawNumber)) {
-				result = StartUpPageCreateResult.fromInt(startupRawNumber);
-			}
-			pmDebug(
-				`startup raw result: ${String(startupRaw)} normalized: ${String(result)}`,
-				result === StartUpPageCreateResult.success ? "warn" : "error",
-			);
-		}
+	private async setupStartupContainer(): Promise<boolean> {
+		const startupContainer = this.buildStartupContainer();
+		const result =
+			await this.bridge.createStartUpPageContainer(startupContainer);
+
 		const resultNames: Record<number, string> = {
 			0: "success",
 			1: "invalid",
@@ -164,61 +147,54 @@ export class PageManager {
 			3: "outOfMemory",
 		};
 		const resultName = resultNames[result as number] ?? `unknown(${result})`;
-		pmDebug(
-			`createStartUpPageContainer result: ${result} (${resultName})`,
-			result === StartUpPageCreateResult.success ? "info" : "error",
-		);
+		log.info(`createStartUpPageContainer result: ${resultName}`);
 
-		if (result === StartUpPageCreateResult.invalid && import.meta.env.DEV) {
-			this.startupReady = true;
-			this.bridgeUnavailable = true;
-			pmDebug(
-				"startup invalid in DEV. Entering degraded mode (webview only).",
-				"warn",
-			);
+		if (result === StartUpPageCreateResult.success) {
 			return true;
 		}
 
-		if (result === StartUpPageCreateResult.invalid) {
-			pmDebug(
-				"startup invalid detected; trying rebuild fallback for existing session",
-				"warn",
-			);
-			try {
-				this.startupReady = true;
-				await this.load(initialPage);
-				pmDebug("rebuild fallback succeeded", "warn");
-				return true;
-			} catch (e) {
-				this.startupReady = false;
-				pmDebug(`rebuild fallback failed: ${String(e)}`, "error");
-				if (import.meta.env.DEV) {
-					// エミュレータ/開発ブラウザでは、bridge があっても EvenHub API が使えない場合がある。
-					this.startupReady = true;
-					this.bridgeUnavailable = true;
-					pmDebug(
-						"EvenHub unavailable in DEV. Entering degraded mode (webview only).",
-						"warn",
-					);
-					return true;
-				}
-				return false;
-			}
+		if (result === StartUpPageCreateResult.invalid && VITE_ENV.DEV) {
+			this.bridgeUnavailable = true;
+			this.startupReady = true;
+			log.warn("Startup invalid in DEV. Continue as degraded mode.");
+			return true;
 		}
 
-		if (result === StartUpPageCreateResult.success) {
-			this.startupReady = true;
-			this.bridgeUnavailable = false;
-			await this.load(initialPage);
+		log.warn("Startup container creation failed.");
+		return false;
+	}
+
+	async init(initialPage: BasePage): Promise<boolean> {
+		this.startupReady = false;
+		this.bridgeUnavailable = false;
+
+		if (this.shouldUseDegradedMode()) {
+			return this.activateDegradedMode(initialPage);
 		}
-		return result === StartUpPageCreateResult.success;
+
+		if (!(await this.ensureDeviceConnected())) {
+			return false;
+		}
+
+		this.registerEventRouter();
+
+		const startupReady = await this.setupStartupContainer();
+		if (!startupReady) {
+			if (VITE_ENV.DEV) {
+				return this.activateDegradedMode(initialPage);
+			}
+			return false;
+		}
+
+		this.startupReady = true;
+		this.bridgeUnavailable = false;
+		await this.load(initialPage);
+		return true;
 	}
 
 	async load(page: BasePage) {
 		if (!this.startupReady) {
-			throw new Error(
-				"グラスの表示コンテナ初期化に失敗しています。接続状態を確認して再度お試しください。",
-			);
+			throw new Error(HUD_ERRORS.NOT_INITIALIZED);
 		}
 		if (this.bridgeUnavailable) {
 			this.currentPage = page;
@@ -229,47 +205,27 @@ export class PageManager {
 		this.currentPage = page;
 		page.init(this.load.bind(this), this.bridge);
 		const rendered = page.render();
-		pmDebug(
+		log.debug(
 			`load() payload summary: total=${String(rendered.containerTotalNum)} textCount=${String(rendered.textObject?.length ?? 0)} imageCount=${String(rendered.imageObject?.length ?? 0)} listCount=${String(rendered.listObject?.length ?? 0)}`,
 		);
 		for (const textObj of rendered.textObject ?? []) {
-			pmDebug(
+			log.debug(
 				`text container id=${String(textObj.containerID)} name=${String(textObj.containerName)} nameLen=${String((textObj.containerName ?? "").length)} chars=${String((textObj.content ?? "").length)} bytes=${String(utf8Bytes(textObj.content))}`,
 			);
 		}
 		const rebuilt = await this.bridge.rebuildPageContainer(rendered);
 		if (!rebuilt) {
-			pmDebug("rebuildPageContainer returned false", "error");
-			pmDebug(`rebuild payload json: ${JSON.stringify(rendered)}`, "error");
+			log.error("rebuildPageContainer returned false");
 
-			const rawRetry = await this.bridge.callEvenApp(
-				"rebuildPageContainer",
-				RebuildPageContainer.toJson(rendered),
-			);
-			pmDebug(
-				`raw callEvenApp(rebuildPageContainer) result: ${String(rawRetry)}`,
-				"error",
-			);
-
-			if (import.meta.env.DEV && rawRetry === false) {
+			if (VITE_ENV.DEV) {
 				this.bridgeUnavailable = true;
-				pmDebug(
+				log.warn(
 					"rebuild unavailable in DEV. Switched to degraded mode (webview only).",
-					"warn",
 				);
 				await page.afterRender();
 				return;
 			}
-
-			const textDiagnostics = (rendered.textObject ?? [])
-				.map(
-					(t) =>
-						`id=${String(t.containerID)} name=${String(t.containerName)} nameLen=${String((t.containerName ?? "").length)} chars=${String((t.content ?? "").length)} bytes=${String(utf8Bytes(t.content))}`,
-				)
-				.join(" | ");
-			throw new Error(
-				`グラス側ページ更新に失敗しました。raw=${String(rawRetry)} / text=[${textDiagnostics}]`,
-			);
+			throw new Error(HUD_ERRORS.REBUILD_FAILED);
 		}
 		await page?.afterRender();
 	}

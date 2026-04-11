@@ -2,6 +2,10 @@ import {
 	DeviceConnectType,
 	type EvenAppBridge,
 } from "@evenrealities/even_hub_sdk";
+import { HUD_ERRORS } from "./errors";
+import { createLogger } from "./logger";
+
+const log = createLogger("BridgeConnector");
 
 export type BridgeConnectorOptions = {
 	onConnecting?: () => void | Promise<void>;
@@ -18,17 +22,19 @@ export function createBridgeConnector(
 	options: BridgeConnectorOptions = {},
 ) {
 	let connectInFlight: Promise<void> | null = null;
-	const timeoutMs = options.timeoutMs ?? 4000;
+	const timeoutMs = options.timeoutMs ?? 2500;
 
-	async function waitForDeviceConnected(): Promise<boolean> {
+	const isConnected = async (): Promise<boolean> => {
 		try {
 			const info = await bridge.getDeviceInfo();
-			if (info?.status?.connectType === DeviceConnectType.Connected) {
-				return true;
-			}
-		} catch (e) {
-			console.warn("[BridgeConnector] getDeviceInfo failed:", e);
+			return info?.status?.connectType === DeviceConnectType.Connected;
+		} catch {
+			return false;
 		}
+	};
+
+	async function waitForDeviceConnected(): Promise<boolean> {
+		if (await isConnected()) return true;
 
 		return await new Promise<boolean>((resolve) => {
 			const timer = window.setTimeout(() => {
@@ -59,9 +65,7 @@ export function createBridgeConnector(
 
 			const connected = await waitForDeviceConnected();
 			if (!connected) {
-				throw new Error(
-					"Device not connected after timeout. Please check connection status.",
-				);
+				throw new Error(HUD_ERRORS.DEVICE_NOT_CONNECTED);
 			}
 
 			if (options.onConnected) {
@@ -76,8 +80,17 @@ export function createBridgeConnector(
 		}
 	}
 
+	const triggerConnect = async () => {
+		try {
+			await connect();
+		} catch (error) {
+			log.warn("connect failed", error);
+			throw error;
+		}
+	};
+
 	return {
-		connect,
+		connect: triggerConnect,
 		waitForDeviceConnected,
 	};
 }
