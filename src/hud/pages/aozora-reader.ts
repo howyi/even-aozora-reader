@@ -23,21 +23,37 @@ export class AozoraReaderPage extends BasePage {
 	) {
 		super();
 		this.work = work;
-		this.pages = paginateWorkText(work.content);
+		this.pages = paginateWorkText(work.content, work.title);
 		this.currentPageIndex = this.clampPageIndex(initialPageIndex);
 		this.onProgressChanged = onProgressChanged;
 	}
 
-	onClick(): void {
-		if (this.currentPageIndex >= this.pages.length - 1) return;
-		this.currentPageIndex += 1;
-		void this.refresh();
+	// リングスクロールでページ移動
+	override onScrollUp(): void {
+		if (this.currentPageIndex > 0) {
+			this.currentPageIndex -= 1;
+			void this.refresh();
+		}
 	}
 
-	onDoubleClick(): void {
-		if (this.currentPageIndex <= 0) return;
-		this.currentPageIndex -= 1;
-		void this.refresh();
+	override onScrollDown(): void {
+		if (this.currentPageIndex < this.pages.length - 1) {
+			this.currentPageIndex += 1;
+			void this.refresh();
+		}
+	}
+
+	// クリック: 常に次ページ
+	override onClick(): void {
+		if (this.currentPageIndex < this.pages.length - 1) {
+			this.currentPageIndex += 1;
+			void this.refresh();
+		}
+	}
+
+	// ダブルクリック: shutdown
+	override onDoubleClick(): void {
+		this.bridge?.shutDownPageContainer?.(1);
 	}
 
 	async afterRender(): Promise<void> {
@@ -47,15 +63,13 @@ export class AozoraReaderPage extends BasePage {
 	render(): RebuildPageContainer {
 		const currentPage = this.pages[this.currentPageIndex] ?? "";
 		const headerText = `${this.work.title}  ${this.currentPageIndex + 1}/${this.pages.length}`;
-		const topHint = this.currentPageIndex >= 1 ? "*ダブルクリックで戻る" : "";
+		// 操作ヒント文言は不要なので除去
 		const pageContent = this.fitToContainerLimit(
-			[topHint, currentPage, "*クリックで次のページ"]
-				.filter((line) => line.length > 0)
-				.join("\n\n"),
+			[currentPage].filter((line) => line.length > 0).join("\n\n"),
 			AozoraReaderPage.MAX_BODY_BYTES,
 		);
 		const mergedContent = this.fitToContainerLimit(
-			[headerText, pageContent].join("\n\n"),
+			[headerText, "", pageContent].join("\n"),
 			AozoraReaderPage.MAX_BODY_BYTES,
 		);
 

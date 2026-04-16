@@ -39,8 +39,46 @@ Use the following rule for new markdown files under `docs/`:
 
 Examples:
 
+
+---
+### テキストコンテナのハードウェア制限
+
+Even G2のテキストコンテナには以下の制限があります（[詳細](docs/even-g2-text-container-hardware-limits-reference.md)）：
+- 1画面最大約400〜500文字（API種別ごとに最大1,000〜2,000文字）
+- フォント・サイズ・装飾指定不可、左上揃えのみ
+- Unicodeはファームウェア内蔵フォント範囲のみ
+- 背景色なし、ボーダーのみ装飾可
+- 詳細は `docs/even-g2-text-container-hardware-limits-reference.md` を参照
+---
+
 - `feature-reading-flow-guide.md`
 - `evenhub-audio-event-reference.md`
 - `storage-schema-reference.md`
 
 Avoid mixed casing and underscores (for example, `MyDoc.md` or `my_doc.md`).
+
+
+---
+### ページライフサイクルと公式ドキュメントリンク
+
+Even G2のページライフサイクルやAPIの詳細は下記リファレンス・リンク集を参照してください：
+- [docs/even-g2-page-lifecycle-reference.md](docs/even-g2-page-lifecycle-reference.md)
+- [Display & UI System](https://hub.evenrealities.com/docs/guides/display)
+- [Page Lifecycle](https://hub.evenrealities.com/docs/guides/page-lifecycle)
+- [Input & Events](https://hub.evenrealities.com/docs/guides/input-events)
+- [Device APIs](https://hub.evenrealities.com/docs/guides/device-apis)
+- [UI/UX Design Guidelines](https://hub.evenrealities.com/docs/guides/design-guidelines)
+- [Simulator](https://hub.evenrealities.com/docs/reference/simulator)
+- [Packaging & Deployment](https://hub.evenrealities.com/docs/reference/packaging)
+- [CLI](https://hub.evenrealities.com/docs/reference/cli)
+- [コミュニティリソース](https://hub.evenrealities.com/docs/community/resources)
+
+---
+### 公式ドキュメント再取得用スキル
+
+公式ドキュメントの更新に追従するため、AIが自動で再フェッチ・要約できるスキル（例: fetch_even_g2_official_doc）を用意してください。
+- スキル名例: fetch_even_g2_official_doc
+- 引数: ドキュメントURL, 要約対象セクション名
+- 返却: 最新の要約テキスト
+- 用途: ドキュメント更新時の自動反映や、開発時の最新仕様参照
+---

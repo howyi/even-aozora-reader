@@ -13,6 +13,10 @@ import { TestLayout } from "./test-layout";
 import { TestText } from "./test-text";
 
 export class TestList extends BasePage {
+	// ルートページでダブルタップ時に終了ダイアログを表示
+	override onDoubleClick(): void {
+		this.bridge?.shutDownPageContainer?.(1);
+	}
 	private items: { name: string; onClick: () => void }[] = [];
 
 	onListSelect(event: List_ItemEvent): void {

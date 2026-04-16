@@ -6,6 +6,10 @@ import { GLASS_SCREEN_HEIGHT, GLASS_SCREEN_WIDTH } from "@/constants";
 import { BasePage } from "./base";
 
 export class SplashText extends BasePage {
+	// ルートページでダブルタップ時に終了ダイアログを表示
+	override onDoubleClick(): void {
+		this.bridge?.shutDownPageContainer?.(1);
+	}
 	private splashText: string;
 
 	constructor(splashText: string) {
